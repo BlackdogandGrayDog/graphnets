@@ -143,7 +143,7 @@ def learner(model, params):
 
     try:
         # Dataset preparation
-        train_ds = dataset.load_datasets('./meshgraphnets/dataset/trajectory_6_accel_patched_input/')
+        train_ds = dataset.load_datasets('./meshgraphnets/dataset/trajectory_6_to_12_patched_input/')
         train_ds = train_ds.flat_map(tf.data.Dataset.from_tensor_slices).shuffle(10000).repeat(None)
         # train_ds = dataset.split_and_preprocess(train_ds, noise_field=params['field'], noise_scale=params['noise'], noise_gamma=params['gamma'])
         train_inputs = tf.data.make_one_shot_iterator(train_ds).get_next()
