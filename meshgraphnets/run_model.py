@@ -35,7 +35,7 @@ from meshgraphnets import cloth_model
 from meshgraphnets import core_model
 from meshgraphnets import dataset
 
-from validate_ply import process_evaluation
+
 
 
 FLAGS = flags.FLAGS
@@ -235,9 +235,7 @@ def evaluator(model, params):
       logging.info('%s: %g', key, np.mean([x[key] for x in scalars]))
     with open(FLAGS.rollout_path, 'wb') as fp:
       pickle.dump(trajectories, fp)
-  
-    exp_name = loss_model + '_loss_' + steps + '_steps'
-    process_evaluation(eval_file_name, exp_name, trajectory)
+
     
     
 def main(argv):
