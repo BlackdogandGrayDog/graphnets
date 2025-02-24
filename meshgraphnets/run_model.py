@@ -171,8 +171,26 @@ def learner(model, params):
         # Loss and optimizer
         if FLAGS.loss_model == 'orig':
             loss_op = model.loss_orig(train_inputs)
+            logging.info('Using original loss function')
+            logging.info('Using original loss function')
+            logging.info('Using original loss function')
+            logging.info('Using original loss function')
+            logging.info('Using original loss function')
+            logging.info('Using original loss function')
+            logging.info('Using original loss function')
+            logging.info('Using original loss function')
+            logging.info('Using original loss function')
+            logging.info('Using original loss function')
         else:
             loss_op = model.loss(train_inputs)
+            logging.info('Using patched loss function')
+            logging.info('Using patched loss function')
+            logging.info('Using patched loss function')
+            logging.info('Using patched loss function')
+            logging.info('Using patched loss function')
+            logging.info('Using patched loss function')
+            logging.info('Using patched loss function')
+            logging.info('Using patched loss function')
         
         global_step = tf.train.create_global_step()
         lr = tf.train.exponential_decay(learning_rate=1e-4,
