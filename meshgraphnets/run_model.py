@@ -41,7 +41,7 @@ flags.DEFINE_enum('mode', 'train', ['train', 'eval'],
                   'Train model, or run evaluation.')
 flags.DEFINE_enum('model', 'cloth', ['cfd', 'cloth'],
                   'Select model to run.')
-flags.DEFINE_string('checkpoint_dir', './meshgraphnets/dataset/trajectory_6_patched_56k_ckpts/', 'Directory to save checkpoint')
+flags.DEFINE_string('checkpoint_dir', './meshgraphnets/dataset/trajectory_6_to_12_patched_56k_ckpts/', 'Directory to save checkpoint')
 # flags.DEFINE_string('dataset_dir', None, 'Directory to load dataset from.')
 flags.DEFINE_string('rollout_path', './meshgraphnets/dataset/gtd_input_data_7_ts_21_gs_15_cotracker_accel.pkl', 'Pickle file to save eval trajectories')
 # flags.DEFINE_enum('rollout_split', 'valid', ['train', 'test', 'valid'], 'Dataset split to use for rollouts.')
