@@ -42,7 +42,7 @@ FLAGS = flags.FLAGS
 
 # Trajectory and loss settings
 trajectory = '6'
-loss_model = 'patched_0.01_0.005'
+loss_model = 'patched_0.005_0.01'
 steps = '56k'
 
 # Base directory
