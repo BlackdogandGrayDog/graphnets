@@ -35,18 +35,39 @@ from meshgraphnets import cloth_model
 from meshgraphnets import core_model
 from meshgraphnets import dataset
 
+from validate_ply import process_evaluation
+
 
 FLAGS = flags.FLAGS
-flags.DEFINE_enum('mode', 'train', ['train', 'eval'],
-                  'Train model, or run evaluation.')
-flags.DEFINE_enum('model', 'cloth', ['cfd', 'cloth'],
-                  'Select model to run.')
-flags.DEFINE_string('checkpoint_dir', './meshgraphnets/dataset/trajectory_6_to_12_patched_56k_ckpts/', 'Directory to save checkpoint')
-# flags.DEFINE_string('dataset_dir', None, 'Directory to load dataset from.')
-flags.DEFINE_string('rollout_path', './meshgraphnets/dataset/gtd_input_data_7_ts_21_gs_15_cotracker_accel.pkl', 'Pickle file to save eval trajectories')
-# flags.DEFINE_enum('rollout_split', 'valid', ['train', 'test', 'valid'], 'Dataset split to use for rollouts.')
-flags.DEFINE_integer('num_rollouts', 1, 'No. of rollout trajectories')
-flags.DEFINE_integer('num_training_steps', int(10e6), 'No. of training steps')
+
+# Trajectory and loss settings
+trajectory = '6'
+loss_model = 'patched_0.05_0.01'
+steps = '56k'
+
+# Base directory
+base_dir = f'./meshgraphnets/dataset/'
+os.makedirs(base_dir, exist_ok=True)
+
+# Evaluation file name
+eval_file_name = f'gtd_input_data_7_ts_21_gs_19_cotracker_accel'
+
+# Mode and model selection
+flags.DEFINE_enum('mode', 'train', ['train', 'eval'], 'Train model or run evaluation.')
+flags.DEFINE_enum('model', 'cloth', ['cfd', 'cloth'], 'Select model to run.')
+
+# Loss model flag
+flags.DEFINE_string('loss_model', loss_model, 'Loss model type (e.g., orig or patched_xxx)')
+
+# Checkpoint directory
+flags.DEFINE_string('checkpoint_dir', f'{base_dir}{loss_model}_loss_{steps}_ckpts/', 'Directory to save checkpoints')
+
+# Rollout file path
+flags.DEFINE_string('rollout_path', f'{base_dir}eval/{eval_file_name}.pkl', 'Pickle file to save evaluation trajectories')
+
+# Additional settings
+flags.DEFINE_integer('num_rollouts', 1, 'Number of rollout trajectories')
+flags.DEFINE_integer('num_training_steps', int(10e6), 'Number of training steps')
 
 PARAMETERS = {
     'cfd': dict(noise=0.02, gamma=1.0, field='velocity', history=False,
@@ -128,7 +149,7 @@ def real_time_plot(steps, train_losses, val_steps, val_losses, stop_event, check
         print(f"Plot saved to {plot_path}")
         plt.close(fig)
 
-
+#  Learner Function
 def learner(model, params):
     """Run a learner job with real-time visualization (no validation)."""
     # Shared lists for steps and training losses
@@ -143,20 +164,16 @@ def learner(model, params):
 
     try:
         # Dataset preparation
-        train_ds = dataset.load_datasets('./meshgraphnets/dataset/trajectory_6_to_12_patched_input/')
+        train_ds = dataset.load_datasets('./meshgraphnets/dataset/trajectory_' + trajectory + '_accel_patched_input/')
         train_ds = train_ds.flat_map(tf.data.Dataset.from_tensor_slices).shuffle(10000).repeat(None)
-        # train_ds = dataset.split_and_preprocess(train_ds, noise_field=params['field'], noise_scale=params['noise'], noise_gamma=params['gamma'])
         train_inputs = tf.data.make_one_shot_iterator(train_ds).get_next()
         
-        # ds = dataset.load_dataset(FLAGS.dataset_dir, 'train')
-        # ds = dataset.add_targets(ds, [params['field']], add_history=params['history'])
-        # ds = dataset.split_and_preprocess(ds, noise_field=params['field'],
-        #                                     noise_scale=params['noise'],
-        #                                     noise_gamma=params['gamma'])
-        # train_inputs = tf.data.make_one_shot_iterator(ds).get_next()
-
         # Loss and optimizer
-        loss_op = model.loss(train_inputs)
+        if FLAGS.loss_model == 'orig':
+            loss_op = model.loss_orig(train_inputs)
+        else:
+            loss_op = model.loss(train_inputs)
+        
         global_step = tf.train.create_global_step()
         lr = tf.train.exponential_decay(learning_rate=1e-4,
                                         global_step=global_step,
@@ -198,7 +215,7 @@ def learner(model, params):
 
 def evaluator(model, params):
   """Run a model rollout trajectory."""
-  ds = dataset.convert_to_tf_dataset('./meshgraphnets/dataset/trajectory_6_accel_patched_input/gtd_input_data_7_ts_21_gs_15_cotracker_accel.npz')
+  ds = dataset.convert_to_tf_dataset('./input/trajectory_' + trajectory + '_accel_patched_eval/' + eval_file_name + '.npz')
   inputs = tf.data.make_one_shot_iterator(ds).get_next()
   scalar_op, traj_ops = params['evaluator'].evaluate(model, inputs)
   tf.train.create_global_step()
@@ -218,7 +235,11 @@ def evaluator(model, params):
       logging.info('%s: %g', key, np.mean([x[key] for x in scalars]))
     with open(FLAGS.rollout_path, 'wb') as fp:
       pickle.dump(trajectories, fp)
-
+  
+    exp_name = loss_model + '_loss_' + steps + '_steps'
+    process_evaluation(eval_file_name, exp_name, trajectory)
+    
+    
 def main(argv):
   del argv
   tf.enable_resource_variables()
@@ -229,7 +250,7 @@ def main(argv):
       latent_size=128,
       num_layers=2,
       message_passing_steps=15)
-  model = params['model'].Model(learned_model)
+  model = params['model'].Model(learned_model, loss_model)
   if FLAGS.mode == 'train':
     learner(model, params)
   elif FLAGS.mode == 'eval':
