@@ -156,8 +156,8 @@ class Model(snt.AbstractModule):
       # base_loss = tf.reduce_mean(error[loss_mask])
 
       # Final loss with regularization
-      lambda_accel = 0.01
-      lambda_patch = 0.01
+      lambda_accel = 0.1
+      lambda_patch = 0.1
       total_loss = base_loss + lambda_accel * acceleration_reg + lambda_patch * patch_reg
       
       return total_loss
