@@ -21,6 +21,7 @@ from meshgraphnets import common
 from meshgraphnets import core_model
 from meshgraphnets import normalization
 from absl import flags
+from absl import logging
 FLAGS = flags.FLAGS
 
 
@@ -55,7 +56,7 @@ class Model(snt.AbstractModule):
   def _build_graph(self, inputs, is_training):
     """Builds input graph."""
     # construct graph nodes
-    
+    logging.info('Building patched graph')
     # Compute velocity and acceleration
     velocity = inputs['world_pos'] - inputs['prev|world_pos']
     acceleration = inputs['world_pos'] - 2 * inputs['prev|world_pos'] + inputs['prev_prev|world_pos']
@@ -96,6 +97,7 @@ class Model(snt.AbstractModule):
   def _build_graph_orig(self, inputs, is_training):
     """Builds input graph."""
     # construct graph nodes
+    logging.info('Building original graph')
     velocity = inputs['world_pos'] - inputs['prev|world_pos']
     node_type = tf.one_hot(inputs['node_type'][:, 0], common.NodeType.SIZE)
     node_features = tf.concat([velocity, node_type], axis=-1)
@@ -155,6 +157,14 @@ class Model(snt.AbstractModule):
   @snt.reuse_variables
   def loss(self, inputs):
       """L2 loss on position with acceleration regularization."""
+      logging.info('Patched loss')
+      logging.info('Patched loss')
+      logging.info('Patched loss')
+      logging.info('Patched loss')
+      logging.info('Patched loss')
+      logging.info('Patched loss')
+      logging.info('Patched loss')
+      logging.info('Patched loss')
       graph = self._build_graph(inputs, is_training=True)
       network_output = self._learned_model(graph)
 
@@ -213,6 +223,8 @@ class Model(snt.AbstractModule):
           raise ValueError(f"Invalid loss_model format: {FLAGS.loss_model}")
       
       total_loss = base_loss + lambda_accel * acceleration_reg + lambda_patch * patch_reg
+      logging.info(f"Acceleration regularization: {acceleration_reg}")
+      logging.info(f"Patch regularization: {patch_reg}")
       
       return total_loss
 
