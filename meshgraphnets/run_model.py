@@ -41,8 +41,8 @@ from meshgraphnets import dataset
 FLAGS = flags.FLAGS
 
 # Trajectory and loss settings
-trajectory = '6'
-loss_model = 'patched_0.005_0.01'
+trajectory = '6_to_12'
+loss_model = 'patched_0.01'
 steps = '56k'
 
 # Base directory
@@ -164,7 +164,7 @@ def learner(model, params):
 
     try:
         # Dataset preparation
-        train_ds = dataset.load_datasets('./meshgraphnets/dataset/trajectory_' + trajectory + '_accel_patched_input/')
+        train_ds = dataset.load_datasets('./meshgraphnets/dataset/trajectory_' + trajectory + '_patched_input/')
         train_ds = train_ds.flat_map(tf.data.Dataset.from_tensor_slices).shuffle(10000).repeat(None)
         train_inputs = tf.data.make_one_shot_iterator(train_ds).get_next()
         
