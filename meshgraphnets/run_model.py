@@ -200,7 +200,8 @@ def learner(model, params):
         decay_steps = int(1e5)
         warmup_steps = 56000 
         decay_rate = (min_lr / initial_lr) ** (1.0 / decay_steps)
-        shifted_step = tf.maximum(0, global_step - warmup_steps) 
+        shifted_step = tf.maximum(tf.constant(0, dtype=tf.int64), global_step - tf.constant(warmup_steps, dtype=tf.int64))
+
         
         lr = tf.maximum(min_lr, tf.train.exponential_decay(
             learning_rate=initial_lr,
