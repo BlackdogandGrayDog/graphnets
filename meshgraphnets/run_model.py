@@ -193,10 +193,20 @@ def learner(model, params):
             logging.info('Using patched loss function')
         
         global_step = tf.train.create_global_step()
-        lr = tf.train.exponential_decay(learning_rate=1e-4,
-                                        global_step=global_step,
-                                        decay_steps=int(5e6),
-                                        decay_rate=0.1) + 1e-8
+        
+        initial_lr = 1e-5
+        min_lr = 1e-6
+        decay_steps = int(1e5)
+        decay_rate = (min_lr / initial_lr) ** (1.0 / decay_steps)
+        
+        lr = tf.maximum(min_lr, tf.train.exponential_decay(
+            learning_rate=initial_lr,
+            global_step=global_step,
+            decay_steps=1,
+            decay_rate=decay_rate
+        ))
+
+        
         optimizer = tf.train.AdamOptimizer(learning_rate=lr)
         train_op = optimizer.minimize(loss_op, global_step=global_step)
 
@@ -209,7 +219,7 @@ def learner(model, params):
         with tf.train.MonitoredTrainingSession(
             hooks=[tf.train.StopAtStepHook(last_step=FLAGS.num_training_steps)],
             checkpoint_dir=FLAGS.checkpoint_dir,
-            save_checkpoint_secs=100) as sess:
+            save_checkpoint_secs=60) as sess:
 
             while not sess.should_stop():
                 _, step, train_loss = sess.run([train_op, global_step, loss_op])
