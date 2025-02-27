@@ -41,8 +41,8 @@ from meshgraphnets import dataset
 FLAGS = flags.FLAGS
 
 # Trajectory and loss settings
-trajectory = '6_to_12'
-loss_model = 'patched_0.01'
+trajectory = '6'
+loss_model = 'patched_0.005_0.01'
 steps = '56k'
 fine_tune_trajectory = '7'
 
