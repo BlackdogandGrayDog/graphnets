@@ -222,11 +222,11 @@ def learner(model, params):
             save_checkpoint_secs=30) as sess:
 
             while not sess.should_stop():
-                _, step, train_loss = sess.run([train_op, global_step, loss_op])
+                _, step, train_loss, lr_value = sess.run([train_op, global_step, loss_op, lr])
 
                 if step % 10 == 0:
                     logging.info('Step %d: Train Loss %g', step, train_loss)
-                    logging.info('Learning rate: %g', lr)
+                    logging.info('Learning rate: %g', lr_value)
                     with data_lock:
                         steps.append(step)
                         train_losses.append(train_loss)  # Append training loss for the plot
