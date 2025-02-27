@@ -198,11 +198,13 @@ def learner(model, params):
         initial_lr = 1e-5
         min_lr = 1e-6
         decay_steps = int(1e5)
+        warmup_steps = 56000 
         decay_rate = (min_lr / initial_lr) ** (1.0 / decay_steps)
+        shifted_step = tf.maximum(0, global_step - warmup_steps) 
         
         lr = tf.maximum(min_lr, tf.train.exponential_decay(
             learning_rate=initial_lr,
-            global_step=global_step,
+            global_step=shifted_step,
             decay_steps=1,
             decay_rate=decay_rate
         ))
@@ -225,8 +227,7 @@ def learner(model, params):
                 _, step, train_loss, lr_value = sess.run([train_op, global_step, loss_op, lr])
 
                 if step % 10 == 0:
-                    logging.info('Step %d: Train Loss %g', step, train_loss)
-                    logging.info('Learning rate: %g', lr_value)
+                    logging.info('Step %d: Train Loss %g Learning Rate %g', step, train_loss, lr_value)
                     with data_lock:
                         steps.append(step)
                         train_losses.append(train_loss)  # Append training loss for the plot
