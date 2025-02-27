@@ -42,7 +42,7 @@ FLAGS = flags.FLAGS
 
 # Trajectory and loss settings
 trajectory = '6'
-loss_model = 'patched_0.005_0.01'
+loss_model = 'orig'
 steps = '56k'
 fine_tune_trajectory = '7'
 
@@ -248,7 +248,7 @@ def learner(model, params):
         with tf.train.MonitoredTrainingSession(
             hooks=[tf.train.StopAtStepHook(last_step=FLAGS.num_training_steps)],
             checkpoint_dir=FLAGS.checkpoint_dir,
-            save_checkpoint_secs=60) as sess:
+            save_checkpoint_secs=30) as sess:
 
             while not sess.should_stop():
                 _, step, train_loss = sess.run([train_op, global_step, loss_op])
