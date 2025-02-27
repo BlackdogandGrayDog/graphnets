@@ -206,35 +206,6 @@ def learner(model, params):
             decay_steps=1,
             decay_rate=decay_rate
         ))
-
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        logging.info('Learning rate: %g', lr)
-        
         
         optimizer = tf.train.AdamOptimizer(learning_rate=lr)
         train_op = optimizer.minimize(loss_op, global_step=global_step)
@@ -255,6 +226,7 @@ def learner(model, params):
 
                 if step % 10 == 0:
                     logging.info('Step %d: Train Loss %g', step, train_loss)
+                    logging.info('Learning rate: %g', lr)
                     with data_lock:
                         steps.append(step)
                         train_losses.append(train_loss)  # Append training loss for the plot
