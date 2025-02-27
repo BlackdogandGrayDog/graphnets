@@ -207,6 +207,34 @@ def learner(model, params):
             decay_rate=decay_rate
         ))
 
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        logging.info('Learning rate: %g', lr)
+        
         
         optimizer = tf.train.AdamOptimizer(learning_rate=lr)
         train_op = optimizer.minimize(loss_op, global_step=global_step)
@@ -217,19 +245,10 @@ def learner(model, params):
                            lambda: tf.group(train_op))
 
         # Training session
-        checkpoint_saving_steps = 10000
-        checkpoint_hook = tf.train.CheckpointSaverHook(
-            checkpoint_dir=FLAGS.checkpoint_dir,  # Directory to save checkpoints
-            save_steps=checkpoint_saving_steps  # Save every 10,000 steps
-        )
-        
         with tf.train.MonitoredTrainingSession(
-            hooks=[
-                tf.train.StopAtStepHook(last_step=FLAGS.num_training_steps),  # Stop at final step
-                checkpoint_hook  # Save every 10k steps
-            ],
-            checkpoint_dir=FLAGS.checkpoint_dir
-        ) as sess:
+            hooks=[tf.train.StopAtStepHook(last_step=FLAGS.num_training_steps)],
+            checkpoint_dir=FLAGS.checkpoint_dir,
+            save_checkpoint_secs=60) as sess:
 
             while not sess.should_stop():
                 _, step, train_loss = sess.run([train_op, global_step, loss_op])
