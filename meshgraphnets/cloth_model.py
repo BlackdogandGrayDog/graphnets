@@ -199,22 +199,11 @@ class Model(snt.AbstractModule):
       image_pos_pred = tf.transpose(image_pos_pred, perm=[1, 0])
       image_pos_pred = image_pos_pred[:, :2] / image_pos_pred[:, 2:3]
       
-      print_world_pos = tf.print("Predicted world Position:\n", pred_position[:5], 
-                    "\nTarget world Position:\n", target_position[:5])
-      
-      print_op = tf.print("Predicted image Position:\n", image_pos_pred[:5], 
-                    "\nTarget image Position:\n", inputs['target|image_pos'][:5])
       
       # Patch Regularization Loss: || pred_flow - target_patched_flow ||^2
       pred_flow = image_pos_pred[:, :2] - inputs['image_pos']
       # Patch Regularization Loss using the **averaged patch flow**
       patch_reg = tf.reduce_mean(tf.square(pred_flow - inputs['avg_target|patched_flow'])*0)
-      
-      # # Compute L2 loss on position
-      # pred_normalized = self._output_normalizer(pred_position)
-      # target_normalized = self._output_normalizer(target_position)
-      # error = tf.reduce_sum((pred_normalized - target_normalized)**2, axis=1)
-      # base_loss = tf.reduce_mean(error[loss_mask])
 
       # Final loss with regularization
       loss_model_values = FLAGS.loss_model.replace("patched_", "").split("_")
@@ -225,8 +214,7 @@ class Model(snt.AbstractModule):
       else:
           raise ValueError(f"Invalid loss_model format: {FLAGS.loss_model}")
       
-      with tf.control_dependencies([print_world_pos, print_op]):
-        total_loss = base_loss + lambda_accel * acceleration_reg + lambda_patch * patch_reg
+      total_loss = base_loss + lambda_accel * acceleration_reg + lambda_patch * patch_reg
       logging.info(f"Acceleration regularization: {acceleration_reg}")
       logging.info(f"Patch regularization: {patch_reg}")
       
