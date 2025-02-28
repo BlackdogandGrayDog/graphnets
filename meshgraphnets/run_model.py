@@ -42,9 +42,9 @@ FLAGS = flags.FLAGS
 
 # Trajectory and loss settings
 trajectory = '6'
-loss_model = 'orig'
+loss_model = 'patched_0.005_0.01'
 steps = '56k'
-fine_tune_trajectory = '7'
+fine_tune_trajectory = 'hamlyn_4'
 
 # Base directory
 base_dir = f'./meshgraphnets/dataset/'
@@ -195,8 +195,8 @@ def learner(model, params):
         
         global_step = tf.train.create_global_step()
         
-        initial_lr = 1e-5
-        min_lr = 1e-6
+        initial_lr = 1e-6
+        min_lr = 1e-7
         decay_steps = int(1e5)
         warmup_steps = 56000 
         decay_rate = (min_lr / initial_lr) ** (1.0 / decay_steps)
@@ -222,7 +222,7 @@ def learner(model, params):
         with tf.train.MonitoredTrainingSession(
             hooks=[tf.train.StopAtStepHook(last_step=FLAGS.num_training_steps)],
             checkpoint_dir=FLAGS.checkpoint_dir,
-            save_checkpoint_secs=30) as sess:
+            save_checkpoint_secs=5) as sess:
 
             while not sess.should_stop():
                 _, step, train_loss, lr_value = sess.run([train_op, global_step, loss_op, lr])
