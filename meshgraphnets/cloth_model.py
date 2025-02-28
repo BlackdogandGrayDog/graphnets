@@ -195,15 +195,21 @@ class Model(snt.AbstractModule):
       pred_position_homo = tf.concat([pred_position, tf.ones_like(pred_position[:, :1])], axis=-1)
 
       # Project to 2D using camera matrix
-      image_pos_pred = tf.matmul(common.K_hamlyn, tf.transpose(pred_position_homo[:, :3], perm=[1, 0]))
+      image_pos_pred = tf.matmul(common.K_hamlyn_4, tf.transpose(pred_position_homo[:, :3], perm=[1, 0]))
       image_pos_pred = tf.transpose(image_pos_pred, perm=[1, 0])
       image_pos_pred = image_pos_pred[:, :2] / image_pos_pred[:, 2:3]
       
+    #   print_world_pos = tf.print("Predicted world Position:\n", pred_position[:5], 
+    #                 "\nTarget world Position:\n", target_position[:5])
+      
+    #   print_op = tf.print("Predicted image Position:\n", image_pos_pred[:5], 
+    #                 "\nTarget image Position:\n", inputs['target|image_pos'][:5])
       
       # Patch Regularization Loss: || pred_flow - target_patched_flow ||^2
       pred_flow = image_pos_pred[:, :2] - inputs['image_pos']
+      
       # Patch Regularization Loss using the **averaged patch flow**
-      patch_reg = tf.reduce_mean(tf.square(pred_flow - inputs['avg_target|patched_flow'])*0)
+      patch_reg = tf.reduce_mean(tf.square(pred_flow - inputs['avg_target|patched_flow']))
 
       # Final loss with regularization
       loss_model_values = FLAGS.loss_model.replace("patched_", "").split("_")
@@ -214,7 +220,21 @@ class Model(snt.AbstractModule):
       else:
           raise ValueError(f"Invalid loss_model format: {FLAGS.loss_model}")
       
-      total_loss = base_loss + lambda_accel * acceleration_reg + lambda_patch * patch_reg
+      print_base_loss = tf.print("Base loss: ", base_loss)
+      print_patch_reg = tf.print("Patch regularization: ", patch_reg)
+      
+    #   use_patch_reg = tf.less(base_loss, tf.constant(0.001, dtype=tf.float32))
+    #   patch_reg = tf.cond(use_patch_reg, lambda: patch_reg, lambda: tf.constant(0.0, dtype=tf.float32))
+      patch_weight = tf.cond(
+        tf.less(base_loss, tf.constant(0.001, dtype=tf.float32)),
+        lambda: tf.minimum(1.0, tf.maximum(0.01, 1000 * base_loss)),  # Smoothly increase weight
+        lambda: tf.constant(0, dtype=tf.float32)  # Keep 0 when base_loss > 0.001
+      )
+
+      patch_reg = patch_weight * patch_reg
+
+      with tf.control_dependencies([print_base_loss, print_patch_reg]):
+        total_loss = base_loss + lambda_accel * acceleration_reg + lambda_patch * patch_reg
       logging.info(f"Acceleration regularization: {acceleration_reg}")
       logging.info(f"Patch regularization: {patch_reg}")
       

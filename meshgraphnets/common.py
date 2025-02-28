@@ -27,19 +27,19 @@ K_simulator = np.array([
 ], dtype=np.float32)
 
 # Hamlyn Intrinsic Camera Matrix
-K_hamlyn = np.array([
+K_hamlyn_4 = np.array([
     [579.05693, 0, 139.93160057],
     [0, 579.05693, 159.01899052],
     [0, 0, 1]
 ], dtype=np.float32)
 
 
-extrinsic = np.array([
-    [0.9990, -0.0112, -0.0426, -5.49238],
-    [0.0117,  0.9999,  0.0097,  0.04267],
-    [0.0425, -0.0102,  0.9990, -0.39886],
-    [0, 0, 0, 1]  # Add homogeneous row
+K_hamlyn_11 = np.array([
+    [426.532013, 0, 175.2081146240234],
+    [0, 426.532013, 153.1618118286133],
+    [0, 0, 1]
 ], dtype=np.float32)
+
 
 class NodeType(enum.IntEnum):
   NORMAL = 0
