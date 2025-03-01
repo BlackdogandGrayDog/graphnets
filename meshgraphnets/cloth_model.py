@@ -240,12 +240,12 @@ class Model(snt.AbstractModule):
       else:
           raise ValueError(f"Invalid loss_model format: {FLAGS.loss_model}")
       
-      print_loss = tf.print("Base loss: ", base_loss, 
-                            "Acceleration regularization: ", acceleration_reg, 
-                            "Patch regularization: ", patch_reg)
+    #   print_loss = tf.print("Base loss: ", base_loss, 
+    #                         "Acceleration regularization: ", acceleration_reg, 
+    #                         "Patch regularization: ", patch_reg)
       
-      with tf.control_dependencies([print_loss]):
-        total_loss = base_loss + lambda_accel * acceleration_reg + lambda_patch * patch_reg
+    #   with tf.control_dependencies([print_loss]):
+      total_loss = base_loss + lambda_accel * acceleration_reg + lambda_patch * patch_reg
       logging.info(f"Acceleration regularization: {acceleration_reg}")
       logging.info(f"Patch regularization: {patch_reg}")
       
