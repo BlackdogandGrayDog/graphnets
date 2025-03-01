@@ -17,6 +17,7 @@
 
 import sonnet as snt
 import tensorflow.compat.v1 as tf
+import tensorflow_probability as tfp
 from meshgraphnets import common
 from meshgraphnets import core_model
 from meshgraphnets import normalization
@@ -153,6 +154,20 @@ class Model(snt.AbstractModule):
     loss = tf.reduce_mean(error[loss_mask])
     return loss
   
+  # Robust Patch Loss
+  def robust_patch_loss(self, pred_flow_norm, target_flow_norm, delta=1.0):
+    error = tf.abs(pred_flow_norm - target_flow_norm)
+    # Compute standard Huber Loss
+    small_error_loss = 0.5 * tf.square(error)
+    large_error_loss = delta * (error - 0.5 * delta)
+    huber_loss = tf.where(error <= delta, small_error_loss, large_error_loss)
+    # Clip loss values to Q3 (suppress extreme spikes)
+    q3_loss = tfp.stats.percentile(huber_loss, 75.0)
+    clipped_loss = tf.clip_by_value(huber_loss, 0, q3_loss)
+
+    return tf.reduce_mean(clipped_loss)
+
+
   # Loss Function with Acceleration Regularization
   @snt.reuse_variables
   def loss(self, inputs):
@@ -207,9 +222,14 @@ class Model(snt.AbstractModule):
       
       # Patch Regularization Loss: || pred_flow - target_patched_flow ||^2
       pred_flow = image_pos_pred[:, :2] - inputs['image_pos']
+      pred_flow_norm = pred_flow / tf.constant(common.hamlyn_img_size, dtype=tf.float32)
+      target_flow_norm = inputs['avg_target|patched_flow'] / tf.constant(common.hamlyn_img_size, dtype=tf.float32)
       
       # Patch Regularization Loss using the **averaged patch flow**
-      patch_reg = tf.reduce_mean(tf.square(pred_flow - inputs['avg_target|patched_flow']))
+    #   patch_reg = tf.reduce_mean(tf.square(pred_flow - inputs['avg_target|patched_flow']))
+    #   patch_reg = tf.reduce_mean(tf.square(pred_flow_norm - target_flow_norm))
+      patch_reg = self.robust_patch_loss(pred_flow_norm, target_flow_norm)
+
 
       # Final loss with regularization
       loss_model_values = FLAGS.loss_model.replace("patched_", "").split("_")
@@ -220,17 +240,12 @@ class Model(snt.AbstractModule):
       else:
           raise ValueError(f"Invalid loss_model format: {FLAGS.loss_model}")
       
-    #   use_patch_reg = tf.less(base_loss, tf.constant(0.001, dtype=tf.float32))
-    #   patch_reg = tf.cond(use_patch_reg, lambda: patch_reg, lambda: tf.constant(0.0, dtype=tf.float32))
-      patch_weight = tf.cond(
-        tf.less(base_loss, tf.constant(0.001, dtype=tf.float32)),
-        lambda: tf.minimum(1.0, tf.maximum(0.01, 1000 * base_loss)),  # Smoothly increase weight
-        lambda: tf.constant(0, dtype=tf.float32)  # Keep 0 when base_loss > 0.001
-      )
-
-      patch_reg = patch_weight * patch_reg
-
-      total_loss = base_loss + lambda_accel * acceleration_reg + lambda_patch * patch_reg
+      print_loss = tf.print("Base loss: ", base_loss, 
+                            "Acceleration regularization: ", acceleration_reg, 
+                            "Patch regularization: ", patch_reg)
+      
+      with tf.control_dependencies([print_loss]):
+        total_loss = base_loss + lambda_accel * acceleration_reg + lambda_patch * patch_reg
       logging.info(f"Acceleration regularization: {acceleration_reg}")
       logging.info(f"Patch regularization: {patch_reg}")
       

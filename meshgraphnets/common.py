@@ -40,6 +40,9 @@ K_hamlyn_11 = np.array([
     [0, 0, 1]
 ], dtype=np.float32)
 
+simulator_img_size = np.array([512, 512], dtype=np.float32)
+hamlyn_img_size = np.array([360, 288], dtype=np.float32)
+
 
 class NodeType(enum.IntEnum):
   NORMAL = 0
