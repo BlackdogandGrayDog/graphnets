@@ -42,7 +42,7 @@ FLAGS = flags.FLAGS
 
 # Trajectory and loss settings
 trajectory = '6'
-loss_model = 'orig'
+loss_model = 'patched_0.005_0.01'
 steps = '56k'
 fine_tune_trajectory = 'hamlyn_4'
 
