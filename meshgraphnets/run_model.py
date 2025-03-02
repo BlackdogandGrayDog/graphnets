@@ -43,7 +43,7 @@ FLAGS = flags.FLAGS
 # Trajectory and loss settings
 trajectory = '6'
 loss_model = 'patched_0.005_0.01'
-steps = '56k'
+steps = '130k'
 fine_tune_trajectory = 'hamlyn_4'
 
 # Base directory
@@ -198,7 +198,7 @@ def learner(model, params):
         initial_lr = 5e-7
         min_lr = 5e-9
         decay_steps = int(1e4)
-        warmup_steps = 56000 
+        warmup_steps = 130000 
         decay_rate = (min_lr / initial_lr) ** (1.0 / decay_steps)
         shifted_step = tf.maximum(tf.constant(0, dtype=tf.int64), global_step - tf.constant(warmup_steps, dtype=tf.int64))
 
